@@ -4,7 +4,7 @@ import http from 'node:http';
 export const WORDPRESS_API_BASE_URL = (
   process.env.NEXT_PUBLIC_WORDPRESS_URL ||
   process.env.WORDPRESS_API_BASE_URL ||
-  ''
+  'https://dev-copo-solutions.pantheonsite.io'
 )
   .trim()
   .replace(/\/wp-admin\/?$/, '')

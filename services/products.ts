@@ -1,32 +1,7 @@
-import {
-  BarChart3,
-  Boxes,
-  Building2,
-  Calculator,
-  Download,
-  Factory,
-  FileCheck,
-  FileText,
-  Handshake,
-  Landmark,
-  Monitor,
-  Repeat,
-  Send,
-  ShieldCheck,
-  ShoppingCart,
-  Truck,
-  Users,
-  Video,
-  type LucideIcon,
-} from 'lucide-react';
+import { FileText, Calculator, ShoppingCart, Send, BarChart3, Repeat, Landmark, FileCheck, Download, ShieldCheck, Users, Building2, Monitor, Video, Truck, Handshake, Boxes, Factory, type LucideIcon } from 'lucide-react';
 import { PRODUCTS, type Product, type ProductFeature } from '@/data/products';
 import { fetchWordPress, isWordPressEnabled } from '@/services/wordpress';
 
-/* ------------------------------------------------------------------ */
-/*  Types WordPress                                                    */
-/* ------------------------------------------------------------------ */
-
-/** Custom Post Type "produit" exposé via ACF */
 type WordPressProduct = {
   slug: string;
   title: { rendered: string };
@@ -42,18 +17,12 @@ type WordPressProduct = {
   };
 };
 
-/** Article WordPress standard avec catégorie "produits" (fallback simple) */
 type WordPressPost = {
   slug: string;
   title: { rendered: string };
   excerpt?: { rendered: string };
   content?: { rendered: string };
-  acf?: Record<string, unknown>;
 };
-
-/* ------------------------------------------------------------------ */
-/*  Icônes de fonctionnalités                                          */
-/* ------------------------------------------------------------------ */
 
 const FEATURE_ICONS: Record<string, LucideIcon> = {
   'file-text': FileText,
@@ -84,59 +53,54 @@ const stripTags = (html: string) =>
     .replace(/&nbsp;/g, ' ')
     .trim();
 
-/* ------------------------------------------------------------------ */
-/*  Mappers : WordPress → Product local                                */
-/* ------------------------------------------------------------------ */
-
-/** Mapper pour un Custom Post Type "produit" avec ACF complet */
-function mapWordPressProduct(item: WordPressProduct): Product {
+/**
+ * Le catalogue local fixe les six fiches demandées et leurs visuels.
+ * WordPress peut enrichir une fiche uniquement lorsqu'un slug correspond
+ * exactement : les anciennes publications ne remplacent donc plus le catalogue.
+ */
+function mergeWordPressProduct(item: WordPressProduct, local: Product): Product {
   const acf = item.acf || {};
+  const remoteFeatures: ProductFeature[] = (acf.features || []).map((feature) => ({
+    icon: FEATURE_ICONS[feature.icon] ?? FileText,
+    title: feature.title,
+    description: feature.description,
+  }));
+
   return {
-    slug: item.slug,
-    name: item.title?.rendered?.replace(/<[^>]+>/g, '') || item.slug,
-    category: acf.category || 'Comptabilité & gestion',
-    summary: acf.summary || '',
-    description: acf.description || [],
-    price: acf.price || 1500,
-    originalPrice: acf.original_price || 2000,
-    image: acf.image_url || '/images/two-women-working-with-accounting-data-on-table-6779567.jpeg',
-    imageAlt: acf.image_alt || item.slug,
-    features: (acf.features || []).map(
-      (feature): ProductFeature => ({
-        icon: FEATURE_ICONS[feature.icon] ?? FileText,
-        title: feature.title,
-        description: feature.description,
-      })
-    ),
+    ...local,
+    name: stripTags(item.title?.rendered || local.name),
+    category: acf.category || local.category,
+    summary: acf.summary || local.summary,
+    description: Array.isArray(acf.description) && acf.description.length
+      ? acf.description
+      : local.description,
+    price: typeof acf.price === 'number' ? acf.price : local.price,
+    originalPrice: typeof acf.original_price === 'number' ? acf.original_price : local.originalPrice,
+    image: acf.image_url || local.image,
+    imageAlt: acf.image_alt || local.imageAlt,
+    features: remoteFeatures.length ? remoteFeatures : local.features,
   };
 }
 
-/**
- * Mapper simple : enrichit les données locales avec les articles WordPress
- * de catégorie "produits". Le client peut modifier le titre, le résumé
- * et la description directement depuis wp-admin sans plugin ACF.
- */
-function mergeWordPressPostIntoLocal(post: WordPressPost, localProd: Product): Product {
+function mergeWordPressPostIntoLocal(post: WordPressPost, local: Product): Product {
   return {
-    ...localProd,
-    name: stripTags(post.title?.rendered || localProd.name),
-    summary: post.excerpt ? stripTags(post.excerpt.rendered) || localProd.summary : localProd.summary,
+    ...local,
+    name: stripTags(post.title?.rendered || local.name),
+    summary: post.excerpt
+      ? stripTags(post.excerpt.rendered) || local.summary
+      : local.summary,
     description: post.content?.rendered
       ? post.content.rendered
           .split('</p>')
           .map(stripTags)
-          .filter((p) => p.length > 0)
-      : localProd.description,
+          .filter((paragraph) => paragraph.length > 0)
+      : local.description,
   };
 }
 
-/* ------------------------------------------------------------------ */
-/*  Cache mémoire (évite les appels WP multiples par render)           */
-/* ------------------------------------------------------------------ */
-
 let _cachedProducts: Product[] | null = null;
 let _cacheTimestamp = 0;
-const CACHE_TTL_MS = 30_000; // 30 secondes
+const CACHE_TTL_MS = 30_000;
 
 async function fetchProductsOnce(): Promise<Product[]> {
   const now = Date.now();
@@ -150,62 +114,44 @@ async function fetchProductsOnce(): Promise<Product[]> {
   return result;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Logique de récupération WordPress                                  */
-/* ------------------------------------------------------------------ */
-
 async function fetchProductsFromWordPress(): Promise<Product[]> {
   if (!isWordPressEnabled()) return PRODUCTS;
 
-  // ── Stratégie 1 : Custom Post Type "produit" via ACF (si installé) ──
   try {
     const items = await fetchWordPress<WordPressProduct[]>(
       '/wp-json/wp/v2/produit?per_page=100&_fields=slug,title,acf'
     );
     if (Array.isArray(items) && items.length > 0) {
-      return items.map(mapWordPressProduct);
+      return PRODUCTS.map((local) => {
+        const matched = items.find((item) => item.slug === local.slug);
+        return matched ? mergeWordPressProduct(matched, local) : local;
+      });
     }
   } catch {
-    // CPT "produit" non enregistré → on continue
+    // Le CPT n'est pas configuré : essayer les articles WordPress classiques.
   }
 
-  // ── Stratégie 2 : Articles classiques avec catégorie "produits" ──
   try {
-    // D'abord trouver l'ID de la catégorie "produits"
     const categories = await fetchWordPress<{ id: number; slug: string }[]>(
       '/wp-json/wp/v2/categories?slug=produits&_fields=id,slug'
     );
     if (Array.isArray(categories) && categories.length > 0) {
-      const catId = categories[0].id;
       const posts = await fetchWordPress<WordPressPost[]>(
-        `/wp-json/wp/v2/posts?categories=${catId}&per_page=20&_fields=slug,title,excerpt,content,acf`
+        \`/wp-json/wp/v2/posts?categories=\${categories[0].id}&per_page=50&_fields=slug,title,excerpt,content\`
       );
       if (Array.isArray(posts) && posts.length > 0) {
-        // Fusionner chaque article WordPress avec les fiches locales riches
-        const updatedProducts = PRODUCTS.map((localProd) => {
-          const matched = posts.find(
-            (p) =>
-              p.slug === localProd.slug ||
-              stripTags(p.title?.rendered || '')
-                .toLowerCase()
-                .includes(localProd.name.toLowerCase())
-          );
-          return matched ? mergeWordPressPostIntoLocal(matched, localProd) : localProd;
+        return PRODUCTS.map((local) => {
+          const matched = posts.find((post) => post.slug === local.slug);
+          return matched ? mergeWordPressPostIntoLocal(matched, local) : local;
         });
-        return updatedProducts;
       }
     }
   } catch {
-    // Pas de catégorie "produits" → données locales
+    // Si WordPress est indisponible, utiliser le catalogue local.
   }
 
-  // ── Fallback : données locales intégrées ──
   return PRODUCTS;
 }
-
-/* ------------------------------------------------------------------ */
-/*  API publique                                                       */
-/* ------------------------------------------------------------------ */
 
 export async function getProducts(): Promise<Product[]> {
   return fetchProductsOnce();

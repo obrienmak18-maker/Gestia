@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: product.name,
     description: product.summary,
-    alternates: { canonical: `/produits/${product.slug}` },
+    alternates: { canonical: \`/produits/\${product.slug}\` },
   };
 }
 
@@ -38,7 +38,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProductBySlug(params.slug);
   if (!product) notFound();
 
-  const discount = getDiscountPercent(product.price, product.originalPrice);
+  const hasPrice = typeof product.price === 'number';
+  const hasDiscount =
+    hasPrice && typeof product.originalPrice === 'number' && product.originalPrice > product.price!;
+  const discount = hasDiscount
+    ? getDiscountPercent(product.price!, product.originalPrice!)
+    : 0;
   const similar = await getSimilarProducts(product.slug);
 
   return (
@@ -50,15 +55,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <li>
                 <Link href="/" className="transition-colors hover:text-brand">Accueil</Link>
               </li>
-              <li aria-hidden>
-                <ChevronRight className="h-4 w-4" />
-              </li>
+              <li aria-hidden><ChevronRight className="h-4 w-4" /></li>
               <li>
                 <Link href="/produits" className="transition-colors hover:text-brand">Produits</Link>
               </li>
-              <li aria-hidden>
-                <ChevronRight className="h-4 w-4" />
-              </li>
+              <li aria-hidden><ChevronRight className="h-4 w-4" /></li>
               <li aria-current="page" className="font-medium text-slate-800">{product.name}</li>
             </ol>
           </nav>
@@ -71,8 +72,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </h1>
               <p className="mt-5 text-lg leading-relaxed text-slate-600">{product.summary}</p>
 
-              <div className="mt-8 overflow-hidden rounded-3xl bg-slate-950 shadow-xl shadow-brand/10 p-3 sm:p-6 flex items-center justify-center border border-slate-800">
-                <img src={product.image} alt={product.imageAlt} className="max-h-[580px] w-auto object-contain rounded-xl" />
+              <div className="mt-8 flex min-h-[260px] items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-lg shadow-brand/5 sm:min-h-[360px] sm:p-8">
+                <img
+                  src={product.image}
+                  alt={product.imageAlt}
+                  loading="eager"
+                  className="max-h-[480px] w-full object-contain"
+                />
               </div>
 
               <div className="mt-10 space-y-4 text-base leading-relaxed text-slate-600">
@@ -85,13 +91,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <aside className="animate-fade-up [animation-delay:200ms] lg:sticky lg:top-28 lg:self-start">
               <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-xl shadow-slate-900/10">
                 <p className="text-sm font-medium text-slate-500">Prix de la licence</p>
-                <div className="mt-2 flex flex-wrap items-baseline gap-3">
-                  <span className="text-4xl font-bold tracking-tight text-brand">{formatPrice(product.price)}</span>
-                  <span className="text-base text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
-                </div>
-                <span className="mt-3 inline-flex rounded-md bg-cta-50 px-2.5 py-1 text-xs font-bold text-cta-text">
-                  Économisez {discount}%
-                </span>
+                {hasPrice ? (
+                  <>
+                    <div className="mt-2 flex flex-wrap items-baseline gap-3">
+                      <span className="text-4xl font-bold tracking-tight text-brand">{formatPrice(product.price!)}</span>
+                      {hasDiscount && (
+                        <span className="text-base text-slate-400 line-through">{formatPrice(product.originalPrice!)}</span>
+                      )}
+                    </div>
+                    {hasDiscount && (
+                      <span className="mt-3 inline-flex rounded-md bg-cta-50 px-2.5 py-1 text-xs font-bold text-cta-text">
+                        Économisez {discount}%
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-brand">Nous consulter</p>
+                )}
 
                 <WhatsAppButton
                   href={buildProductOrderUrl(product.name)}

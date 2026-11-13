@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: product.name,
     description: product.summary,
-    alternates: { canonical: \`/produits/\${product.slug}\` },
+    alternates: { canonical: `/produits/${product.slug}` },
   };
 }
 

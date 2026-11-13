@@ -137,7 +137,7 @@ async function fetchProductsFromWordPress(): Promise<Product[]> {
     );
     if (Array.isArray(categories) && categories.length > 0) {
       const posts = await fetchWordPress<WordPressPost[]>(
-        \`/wp-json/wp/v2/posts?categories=\${categories[0].id}&per_page=50&_fields=slug,title,excerpt,content\`
+        `/wp-json/wp/v2/posts?categories=${categories[0].id}&per_page=50&_fields=slug,title,excerpt,content`
       );
       if (Array.isArray(posts) && posts.length > 0) {
         return PRODUCTS.map((local) => {

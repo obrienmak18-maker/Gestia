@@ -51,7 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <Link
-            href={\`/produits/\${product.slug}\`}
+            href={`/produits/${product.slug}`}
             className="group/link inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-800 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand hover:text-brand hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             Voir les détails

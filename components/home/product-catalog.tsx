@@ -16,7 +16,7 @@ export async function ProductCatalog() {
               Nos logiciels phares
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-600">
-              Des solutions éprouvées pour la comptabilité, la paie, la fiscalité et la gestion intégrée.
+              Six logiciels Sage dédiés à la comptabilité, la gestion commerciale, la paie et les ressources humaines, les immobilisations, la trésorerie et la fiscalité.
             </p>
           </div>
           <Link
@@ -28,7 +28,7 @@ export async function ProductCatalog() {
           </Link>
         </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {products.map((product) => (
             <ProductCard key={product.slug} product={product} />
           ))}

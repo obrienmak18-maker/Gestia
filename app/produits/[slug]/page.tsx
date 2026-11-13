@@ -106,11 +106,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     )}
                   </>
                 ) : (
-                  <p className="mt-2 text-2xl font-bold tracking-tight text-brand">Nous consulter</p>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-brand">Prix sur demande</p>
                 )}
 
                 <WhatsAppButton
-                  href={buildProductOrderUrl(product.name)}
+                  href={buildProductOrderUrl(product.name, hasPrice ? 'order' : 'quote')}
+                  label={hasPrice ? 'Commander sur WhatsApp' : 'Demander un devis'}
                   className="mt-7 h-14 w-full text-base"
                 />
 

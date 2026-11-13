@@ -51,7 +51,7 @@ export const PRODUCTS: Product[] = [
       'Le parcours commercial peut être organisé selon le flux : devis, commande, livraison, facture.',
     ],
     image:
-      'https://www.sage.com/fr-ma/-/media/images/sagedotcom/morocco/product%20images/sage%20100c%20gc%20intuisage.jpg',
+      'https://img1.lemondeinformatique.fr/fichiers/telechargement/sage-generation-i7-gestion-commerciale.png',
     imageAlt: 'Interface Sage 100 Gestion Commerciale affichée sur un ordinateur portable',
     features: [
       {
@@ -104,7 +104,7 @@ export const PRODUCTS: Product[] = [
       'Les utilisateurs disposent des principaux états comptables, notamment le grand livre, la balance et les journaux, ainsi que des fonctions d’import et d’export Excel et de gestion du FEC. Le descriptif fourni prévoit la gestion jusqu’à 10 exercices.',
     ],
     image:
-      'https://wilroad.com/247-large_default/sage-100-comptabilite-100c100cloud.jpg',
+      'https://wilroad.com/3-large_default/sage-100-comptabilite-i7.jpg',
     imageAlt: 'Capture de l’interface Sage 100 Comptabilité Cloud',
     features: [
       {

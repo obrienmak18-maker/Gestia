@@ -51,7 +51,7 @@ export const PRODUCTS: Product[] = [
       'Le parcours commercial peut être organisé selon le flux : devis, commande, livraison, facture.',
     ],
     image:
-      'https://img1.lemondeinformatique.fr/fichiers/telechargement/sage-generation-i7-gestion-commerciale.png',
+      'https://wilroad.com/53-large_default/sage-100-gestion-commerciale-100c100cloud.jpg',
     imageAlt: 'Interface Sage 100 Gestion Commerciale affichée sur un ordinateur portable',
     features: [
       {
@@ -104,7 +104,7 @@ export const PRODUCTS: Product[] = [
       'Les utilisateurs disposent des principaux états comptables, notamment le grand livre, la balance et les journaux, ainsi que des fonctions d’import et d’export Excel et de gestion du FEC. Le descriptif fourni prévoit la gestion jusqu’à 10 exercices.',
     ],
     image:
-      'https://wilroad.com/3-large_default/sage-100-comptabilite-i7.jpg',
+      'https://wilroad.com/51-large_default/sage-100-comptabilite-100c100cloud.jpg',
     imageAlt: 'Capture de l’interface Sage 100 Comptabilité Cloud',
     features: [
       {
@@ -147,7 +147,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     slug: 'sage-paie-rh-100-cloud-v8',
-    name: 'Sage Paie 100 Cloud V8',
+    name: 'Sage Paie & RH 100 Cloud V8',
     category: 'Paie et ressources humaines',
     summary:
       'Centralisez les dossiers des salariés, les contrats, les bulletins de paie, les cotisations sociales, les congés et les états RH.',

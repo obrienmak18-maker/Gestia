@@ -45,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
               )}
             </>
           ) : (
-            <span className="text-base font-semibold text-slate-700">Nous consulter</span>
+            <span className="text-base font-semibold text-slate-700">Prix sur demande</span>
           )}
         </div>
 
@@ -57,7 +57,11 @@ export function ProductCard({ product }: { product: Product }) {
             Voir les détails
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" aria-hidden />
           </Link>
-          <WhatsAppButton href={buildProductOrderUrl(product.name)} className="w-full px-4" />
+          <WhatsAppButton
+            href={buildProductOrderUrl(product.name, hasPrice ? 'order' : 'quote')}
+            label={hasPrice ? 'Commander sur WhatsApp' : 'Demander un devis'}
+            className="w-full px-4"
+          />
         </div>
       </div>
     </article>
